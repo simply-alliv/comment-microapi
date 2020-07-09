@@ -1,11 +1,21 @@
 const errorHandler = (err, req, res) => {
   if (err.statusCode) {
     // if error has user-defined statusCode then it's a custom error
-    res.status(err.statusCode).json({
-      status: "error",
+    let status;
+
+    if (err.name) {
+      status = err.statusCode;
+    } else {
+      status = "error";
+    }
+
+    const jsonBody = {
+      status: status,
       error: err.message,
       data: err.data,
-    });
+    };
+
+    res.status(err.statusCode).json(jsonBody);
     // if error has system-generated status
   } else if (err.status) {
     res.status(err.status).json({

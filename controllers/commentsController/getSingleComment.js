@@ -2,7 +2,7 @@ const Comments = require("../../models/comments");
 const mongoose = require("mongoose");
 
 // Utilities
-const CustomError = require("../../utils/customError");
+const customErrors = require("../../utils/customErrors");
 const responseHandler = require("../../utils/responseHandler");
 
 /**
@@ -23,17 +23,16 @@ const getSingleComment = async (req, res, next) => {
   try {
     // check if commentId is valid
     if (!mongoose.Types.ObjectId.isValid(commentId)) {
-      return next(new CustomError(422, "invalid ID"));
+      return next(
+        new customErrors.UnprocessableEntityError([
+          '"commentId" in path is invalid',
+        ])
+      );
     }
 
     const comment = await Comments.findOne(query);
     if (!comment) {
-      return next(
-        new CustomError(
-          404,
-          `Comment with the ID ${commentId} doesn't exist or has been removed`
-        )
-      );
+      return next(new customErrors.NotFoundError(commentId));
     }
     const data = {
       commentId: comment._id,
@@ -51,7 +50,7 @@ const getSingleComment = async (req, res, next) => {
 
     return responseHandler(res, 200, data, `Comment Retrieved Successfully`);
   } catch (err) {
-    return next(new CustomError(500, `Something went wrong ${err}`));
+    return next(new customErrors.InternalServerError());
   }
 };
 
